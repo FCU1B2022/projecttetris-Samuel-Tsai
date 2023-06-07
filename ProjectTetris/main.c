@@ -4,14 +4,14 @@
 #include <time.h>
 #include <windows.h>
 
-#define LEFT_KEY 0x25     // The key to move left, default = 0x25 (left arrow)
-#define RIGHT_KEY 0x27    // The key to move right, default = 0x27 (right arrow)
-#define ROTATE_KEY 0x26   // The key to rotate, default = 0x26 (up arrow)
-#define DOWN_KEY 0x28     // The key to move down, default = 0x28 (down arrow)
-#define FALL_KEY 0x20     // The key to fall, default = 0x20 (spacebar)
+#define LEFT_KEY 0x25   // The key to move left, default = 0x25 (left arrow)
+#define RIGHT_KEY 0x27  // The key to move right, default = 0x27 (right arrow)
+#define ROTATE_KEY 0x26 // The key to rotate, default = 0x26 (up arrow)
+#define DOWN_KEY 0x28   // The key to move down, default = 0x28 (down arrow)
+#define FALL_KEY 0x20   // The key to fall, default = 0x20 (spacebar)
 
-#define FALL_DELAY 500    // The delay between each fall, default = 500
-#define RENDER_DELAY 100  // The delay between each frame, default = 100
+#define FALL_DELAY 500   // The delay between each fall, default = 500
+#define RENDER_DELAY 100 // The delay between each frame, default = 100
 
 #define LEFT_FUNC() GetAsyncKeyState(LEFT_KEY) & 0x8000
 #define RIGHT_FUNC() GetAsyncKeyState(RIGHT_KEY) & 0x8000
@@ -22,7 +22,8 @@
 #define CANVAS_WIDTH 10
 #define CANVAS_HEIGHT 20
 
-typedef enum {
+typedef enum
+{
     RED = 41,
     GREEN,
     YELLOW,
@@ -31,9 +32,10 @@ typedef enum {
     CYAN,
     WHITE,
     BLACK = 0,
-}Color;
+} Color;
 
-typedef enum {
+typedef enum
+{
     EMPTY = -1,
     I,
     J,
@@ -42,14 +44,15 @@ typedef enum {
     S,
     T,
     Z
-}ShapeId;
+} ShapeId;
 
-typedef struct {
+typedef struct
+{
     ShapeId shape;
     Color color;
     int size;
     char rotates[4][4][4];
-}Shape;
+} Shape;
 
 typedef struct
 {
@@ -59,211 +62,136 @@ typedef struct
     int rotate;
     int fallTime;
     ShapeId queue[4];
-}State;
+} State;
 
-typedef struct {
+typedef struct
+{
     Color color;
     ShapeId shape;
     bool current;
-}Block;
+} Block;
 
 Shape shapes[7] = {
-    {
-        .shape = I,
-        .color = CYAN,
-        .size = 4,
-        .rotates =
-        {
-            {
-                {0, 0, 0, 0},
-                {1, 1, 1, 1},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0}
-            },
-            {
-                {0, 0, 1, 0},
-                {0, 0, 1, 0},
-                {0, 0, 1, 0},
-                {0, 0, 1, 0}
-            },
-            {
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {1, 1, 1, 1},
-                {0, 0, 0, 0}
-            },
-            {
-                {0, 1, 0, 0},
-                {0, 1, 0, 0},
-                {0, 1, 0, 0},
-                {0, 1, 0, 0}
-            }
-        }
-    },
-    {
-        .shape = J,
-        .color = BLUE,
-        .size = 3,
-        .rotates =
-        {
-            {
-                {1, 0, 0},
-                {1, 1, 1},
-                {0, 0, 0}
-            },
-            {
-                {0, 1, 1},
-                {0, 1, 0},
-                {0, 1, 0}
-            },
-            {
-                {0, 0, 0},
-                {1, 1, 1},
-                {0, 0, 1}
-            },
-            {
-                {0, 1, 0},
-                {0, 1, 0},
-                {1, 1, 0}
-            }
-        }
-    },
-    {
-        .shape = L,
-        .color = YELLOW,
-        .size = 3,
-        .rotates =
-        {
-            {
-                {0, 0, 1},
-                {1, 1, 1},
-                {0, 0, 0}
-            },
-            {
-                {0, 1, 0},
-                {0, 1, 0},
-                {0, 1, 1}
-            },
-            {
-                {0, 0, 0},
-                {1, 1, 1},
-                {1, 0, 0}
-            },
-            {
-                {1, 1, 0},
-                {0, 1, 0},
-                {0, 1, 0}
-            }
-        }
-    },
-    {
-        .shape = O,
-        .color = WHITE,
-        .size = 2,
-        .rotates =
-        {
-            {
-                {1, 1},
-                {1, 1}
-            },
-            {
-                {1, 1},
-                {1, 1}
-            },
-            {
-                {1, 1},
-                {1, 1}
-            },
-            {
-                {1, 1},
-                {1, 1}
-            }
-        }
-    },
-    {
-        .shape = S,
-        .color = GREEN,
-        .size = 3,
-        .rotates =
-        {
-            {
-                {0, 1, 1},
-                {1, 1, 0},
-                {0, 0, 0}
-            },
-            {
-                {0, 1, 0},
-                {0, 1, 1},
-                {0, 0, 1}
-            },
-            {
-                {0, 0, 0},
-                {0, 1, 1},
-                {1, 1, 0}
-            },
-            {
-                {1, 0, 0},
-                {1, 1, 0},
-                {0, 1, 0}
-            }
-        }
-    },
-    {
-        .shape = T,
-        .color = PURPLE,
-        .size = 3,
-        .rotates =
-        {
-            {
-                {0, 1, 0},
-                {1, 1, 1},
-                {0, 0, 0}
-            },
+    {.shape = I,
+     .color = CYAN,
+     .size = 4,
+     .rotates =
+         {
+             {{0, 0, 0, 0},
+              {1, 1, 1, 1},
+              {0, 0, 0, 0},
+              {0, 0, 0, 0}},
+             {{0, 0, 1, 0},
+              {0, 0, 1, 0},
+              {0, 0, 1, 0},
+              {0, 0, 1, 0}},
+             {{0, 0, 0, 0},
+              {0, 0, 0, 0},
+              {1, 1, 1, 1},
+              {0, 0, 0, 0}},
+             {{0, 1, 0, 0},
+              {0, 1, 0, 0},
+              {0, 1, 0, 0},
+              {0, 1, 0, 0}}}},
+    {.shape = J,
+     .color = BLUE,
+     .size = 3,
+     .rotates =
+         {
+             {{1, 0, 0},
+              {1, 1, 1},
+              {0, 0, 0}},
+             {{0, 1, 1},
+              {0, 1, 0},
+              {0, 1, 0}},
+             {{0, 0, 0},
+              {1, 1, 1},
+              {0, 0, 1}},
+             {{0, 1, 0},
+              {0, 1, 0},
+              {1, 1, 0}}}},
+    {.shape = L,
+     .color = YELLOW,
+     .size = 3,
+     .rotates =
+         {
+             {{0, 0, 1},
+              {1, 1, 1},
+              {0, 0, 0}},
+             {{0, 1, 0},
+              {0, 1, 0},
+              {0, 1, 1}},
+             {{0, 0, 0},
+              {1, 1, 1},
+              {1, 0, 0}},
+             {{1, 1, 0},
+              {0, 1, 0},
+              {0, 1, 0}}}},
+    {.shape = O,
+     .color = WHITE,
+     .size = 2,
+     .rotates =
+         {
+             {{1, 1},
+              {1, 1}},
+             {{1, 1},
+              {1, 1}},
+             {{1, 1},
+              {1, 1}},
+             {{1, 1},
+              {1, 1}}}},
+    {.shape = S,
+     .color = GREEN,
+     .size = 3,
+     .rotates =
+         {
+             {{0, 1, 1},
+              {1, 1, 0},
+              {0, 0, 0}},
+             {{0, 1, 0},
+              {0, 1, 1},
+              {0, 0, 1}},
+             {{0, 0, 0},
+              {0, 1, 1},
+              {1, 1, 0}},
+             {{1, 0, 0},
+              {1, 1, 0},
+              {0, 1, 0}}}},
+    {.shape = T,
+     .color = PURPLE,
+     .size = 3,
+     .rotates =
+         {
+             {{0, 1, 0},
+              {1, 1, 1},
+              {0, 0, 0}},
 
-                {{0, 1, 0},
-                {0, 1, 1},
-                {0, 1, 0}
-            },
-            {
-                {0, 0, 0},
-                {1, 1, 1},
-                {0, 1, 0}
-            },
-            {
-                {0, 1, 0},
-                {1, 1, 0},
-                {0, 1, 0}
-            }
-        }
-    },
-    {
-        .shape = Z,
-        .color = RED,
-        .size = 3,
-        .rotates =
-        {
-            {
-                {1, 1, 0},
-                {0, 1, 1},
-                {0, 0, 0}
-            },
-            {
-                {0, 0, 1},
-                {0, 1, 1},
-                {0, 1, 0}
-            },
-            {
-                {0, 0, 0},
-                {1, 1, 0},
-                {0, 1, 1}
-            },
-            {
-                {0, 1, 0},
-                {1, 1, 0},
-                {1, 0, 0}
-            }
-        }
-    },
+             {{0, 1, 0},
+              {0, 1, 1},
+              {0, 1, 0}},
+             {{0, 0, 0},
+              {1, 1, 1},
+              {0, 1, 0}},
+             {{0, 1, 0},
+              {1, 1, 0},
+              {0, 1, 0}}}},
+    {.shape = Z,
+     .color = RED,
+     .size = 3,
+     .rotates =
+         {
+             {{1, 1, 0},
+              {0, 1, 1},
+              {0, 0, 0}},
+             {{0, 0, 1},
+              {0, 1, 1},
+              {0, 1, 0}},
+             {{0, 0, 0},
+              {1, 1, 0},
+              {0, 1, 1}},
+             {{0, 1, 0},
+              {1, 1, 0},
+              {1, 0, 0}}}},
 };
 
 void setBlock(Block* block, Color color, ShapeId shape, bool current)
@@ -280,18 +208,24 @@ void resetBlock(Block* block)
     block->current = false;
 }
 
-bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int originalY, int originalRotate, int newX, int newY, int newRotate, ShapeId shapeId) {
+bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int originalY, int originalRotate, int newX, int newY, int newRotate, ShapeId shapeId)
+{
     Shape shapeData = shapes[shapeId];
     int size = shapeData.size;
 
     // check if the new position is valid to place the block
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            if (shapeData.rotates[newRotate][i][j]) {
-                if (newX + j < 0 || newX + j >= CANVAS_WIDTH || newY + i < 0 || newY + i >= CANVAS_HEIGHT) {
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            if (shapeData.rotates[newRotate][i][j])
+            {
+                if (newX + j < 0 || newX + j >= CANVAS_WIDTH || newY + i < 0 || newY + i >= CANVAS_HEIGHT)
+                {
                     return false;
                 }
-                if (!canvas[newY + i][newX + j].current && canvas[newY + i][newX + j].shape != EMPTY) {
+                if (!canvas[newY + i][newX + j].current && canvas[newY + i][newX + j].shape != EMPTY)
+                {
                     return false;
                 }
             }
@@ -299,18 +233,24 @@ bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int original
     }
 
     // remove the old position
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            if (shapeData.rotates[originalRotate][i][j]) {
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            if (shapeData.rotates[originalRotate][i][j])
+            {
                 resetBlock(&canvas[originalY + i][originalX + j]);
             }
         }
     }
 
     // move the block
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            if (shapeData.rotates[newRotate][i][j]) {
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            if (shapeData.rotates[newRotate][i][j])
+            {
                 setBlock(&canvas[newY + i][newX + j], shapeData.color, shapeId, true);
             }
         }
@@ -319,12 +259,38 @@ bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int original
     return true;
 }
 
+bool movea(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int originalY, int originalRotate, int newX, int newY, int newRotate, ShapeId shapeId)
+{
+    Shape shapeData = shapes[shapeId];
+    int size = shapeData.size;
+    // check if the new position is valid to place the block
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            if (shapeData.rotates[newRotate][i][j])
+            {
+                if (newX + j < 0 || newX + j >= CANVAS_WIDTH || newY + i < 0 || newY + i >= CANVAS_HEIGHT)
+                {
+                    return false;
+                }
+                if (!canvas[newY + i][newX + j].current && canvas[newY + i][newX + j].shape != EMPTY)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+}
+
 void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
 {
     printf("\033[0;0H\n");
-    for (int i = 0; i < CANVAS_HEIGHT; i++) {
+    for (int i = 0; i < CANVAS_HEIGHT; i++)
+    {
         printf("|");
-        for (int j = 0; j < CANVAS_WIDTH; j++) {
+        for (int j = 0; j < CANVAS_WIDTH; j++)
+        {
             printf("\033[%dm\u3000", canvas[i][j].color);
         }
         printf("\033[0m|\n");
@@ -335,25 +301,53 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
     for (int i = 1; i <= 3; i++)
     {
         shapeData = shapes[state->queue[i]];
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 4; j++)
+        {
             printf("\033[%d;%dH", i * 4 + j, CANVAS_WIDTH * 2 + 15);
-            for (int k = 0; k < 4; k++) {
-                if (j < shapeData.size && k < shapeData.size && shapeData.rotates[0][j][k]) {
+            for (int k = 0; k < 4; k++)
+            {
+                if (j < shapeData.size && k < shapeData.size && shapeData.rotates[0][j][k])
+                {
                     printf("\x1b[%dm  ", shapeData.color);
                 }
-                else {
+                else
+                {
                     printf("\x1b[0m  ");
                 }
             }
         }
+
+        // Render the predict block
+        int newy = state->y + 1;
+        while (movea(canvas, state->x, newy, state->rotate, state->x, newy, state->rotate, state->queue[0]))
+        {
+            newy++;
+        }
+        shapeData = shapes[state->queue[0]];
+        for (int j = 0; j < 4; j++)
+        {
+            for (int k = 0; k < 4; k++)
+            {
+                if (j < shapeData.size && k < shapeData.size && shapeData.rotates[state->rotate][j][k])
+                {
+                    printf("\033[%d;%dH\033[%dm_]\033[0m", newy + j + 1, 2 * (state->x + k) + 2, shapeData.color - 10);
+                }
+            }
+        }
     }
+    printf("\033[%d;%dHScore: %d", 20, CANVAS_WIDTH * 2 + 5, (state->score));
+
     return;
 }
 
-int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH]) {
-    for (int i = 0; i < CANVAS_HEIGHT; i++) {
-        for (int j = 0; j < CANVAS_WIDTH; j++) {
-            if (canvas[i][j].current) {
+int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH])
+{
+    for (int i = 0; i < CANVAS_HEIGHT; i++)
+    {
+        for (int j = 0; j < CANVAS_WIDTH; j++)
+        {
+            if (canvas[i][j].current)
+            {
                 canvas[i][j].current = false;
             }
         }
@@ -366,13 +360,15 @@ int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH]) {
         bool isFull = true;
         for (int j = 0; j < CANVAS_WIDTH; j++)
         {
-            if (canvas[i][j].shape == EMPTY) {
+            if (canvas[i][j].shape == EMPTY)
+            {
                 isFull = false;
                 break;
             }
         }
 
-        if (isFull) {
+        if (isFull)
+        {
             linesCleared += 1;
 
             for (int j = i; j > 0; j--)
@@ -387,49 +383,55 @@ int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH]) {
         }
     }
 
-
     return linesCleared;
 }
 
 void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
 {
-    if (ROTATE_FUNC()) {
+    if (ROTATE_FUNC())
+    {
         int newRotate = (state->rotate + 1) % 4;
         if (move(canvas, state->x, state->y, state->rotate, state->x, state->y, newRotate, state->queue[0]))
         {
             state->rotate = newRotate;
         }
     }
-    else if (LEFT_FUNC()) {
+    else if (LEFT_FUNC())
+    {
         if (move(canvas, state->x, state->y, state->rotate, state->x - 1, state->y, state->rotate, state->queue[0]))
         {
             state->x -= 1;
         }
     }
-    else if (RIGHT_FUNC()) {
+    else if (RIGHT_FUNC())
+    {
         if (move(canvas, state->x, state->y, state->rotate, state->x + 1, state->y, state->rotate, state->queue[0]))
         {
             state->x += 1;
         }
     }
-    else if (DOWN_FUNC()) {
+    else if (DOWN_FUNC())
+    {
         state->fallTime = FALL_DELAY;
     }
-    else if (FALL_FUNC()) {
+    else if (FALL_FUNC())
+    {
         state->fallTime += FALL_DELAY * CANVAS_HEIGHT;
     }
 
     state->fallTime += RENDER_DELAY;
 
-    while (state->fallTime >= FALL_DELAY) {
+    while (state->fallTime >= FALL_DELAY)
+    {
         state->fallTime -= FALL_DELAY;
 
-        if (move(canvas, state->x, state->y, state->rotate, state->x, state->y + 1, state->rotate, state->queue[0])) {
+        if (move(canvas, state->x, state->y, state->rotate, state->x, state->y + 1, state->rotate, state->queue[0]))
+        {
             state->y++;
         }
-        else {
-            state->score += clearLine(canvas);
-
+        else
+        {
+            state->score += clearLine(canvas)*10;
             state->x = CANVAS_WIDTH / 2;
             state->y = 0;
             state->rotate = 0;
@@ -438,27 +440,91 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
             state->queue[1] = state->queue[2];
             state->queue[2] = state->queue[3];
             state->queue[3] = rand() % 7;
-
-            if (!move(canvas, state->x, state->y, state->rotate, state->x, state->y, state->rotate, state->queue[0]))
+            if (!move(canvas, state->x, state->y, state->rotate, state->x, state->y, state->rotate, state->queue[0])) // Gameover
             {
-                printf("\033[%d;%dH\x1b[41m GAME OVER \x1b[0m\033[%d;%dH", CANVAS_HEIGHT - 3, CANVAS_WIDTH * 2 + 5, CANVAS_HEIGHT + 5, 0);
-                exit(0);
+                printf("\033[2J");   // Clear the screen
+                printf("\033[0;0H"); // Move the cursor to (0, 0)
+                printf("\033[31m ________                        ________                     \033[0m\n");
+                printf("\033[33m/  _____/_____    _____   ____   \\_____  \\___  __ ___________ \033[0m\n");
+                printf("\033[32m/   \\  ___\\__  \\  /     \\_/ __ \\   /   |   \\  \\/ // __ \\_  __ \\\033[0m\n");
+                printf("\033[36m\\    \\_\\  \\/ __ \\|  Y Y  \\  ___/  /    |    \\   /\\  ___/|  | \\/\033[0m\n");
+                printf("\033[34m \\______  (____  /__|_|  /\\___  > \\_______  /\\_/  \\___  >__|   \033[0m\n");
+                printf("\033[35m        \\/     \\/      \\/     \\/          \\/          \\/       \033[0m\n");
+                printf("\n");
+                printf("\033[37;7mYour Score: %d\033[0m\n", state->score);
+                printf("Press any key to exit...\n");
+                // Wait for the user to press any key
+                system("pause");
+                exit(0); // exit game
             }
         }
     }
+
     return;
+}
+
+void printStartScreen()
+{
+    printf("\033[2J");   // Clear the screen
+    printf("\033[0;0H"); // Move the cursor to (0, 0)
+
+    printf("\033[31m___________     __         .__           ________                       \033[0m\n");
+    printf("\033[33m\\__    ___/____/  |________|__| ______  /  _____/_____    _____   ____  \033[0m\n");
+    printf("\033[32m  |    |_/ __ \\   __\\_  __ \\  |/  ___/ /   \\  ___\\__  \\  /     \\_/ __ \\ \033[0m\n");
+    printf("\033[36m  |    |\\  ___/|  |  |  | \\/  |\\___ \\  \\    \\_\\  \\/ __ \\|  Y Y  \\  ___/ \033[0m\n");
+    printf("\033[34m  |____| \\___  >__|  |__|  |__/____  >  \\______  (____  /__|_|  /\\___  >\033[0m\n");
+    printf("\033[35m             \\/                    \\/          \\/     \\/      \\/     \\/  \033[0m\n");
+    printf("\n");
+    printf("\033[31mInstructions:\033[0m\n");
+    printf("\033[33mUse the arrow keys to move and rotate the blocks.\033[0m\n");
+    printf("\033[32mPress the spacebar to make the block fall instantly.\033[0m\n");
+    printf("\n");
+    printf("\033[37;7mPress any key to start the game...\033[0m\n");
+
+    // Wait for the user to press any key
+    system("pause");
+}
+
+void Count()
+{
+    while (1)
+    {
+        printf("\033[2J"); // Clear the screen
+        printf("\033[5;20H");
+        printf("Game Started");
+        Sleep(1000);
+        system("cls");
+        printf("\033[5;20H");
+        printf("\033[31;7m3\033[0m");
+        Sleep(1000);
+        system("cls");
+        printf("\033[5;20H");
+        printf("\033[33;7m2\033[0m");
+        Sleep(1000);
+        system("cls");
+        printf("\033[5;20H");
+        printf("\033[32;7m1\033[0m");
+        Sleep(1000);
+        system("cls");
+        printf("\033[5;20H");
+        printf("GoGo!!!");
+        Sleep(1000);
+        system("cls");
+        break;
+    }
 }
 
 int main()
 {
     srand(time(NULL));
+    printStartScreen();
+    Count(5);
     State state = {
         .x = CANVAS_WIDTH / 2,
         .y = 0,
         .score = 0,
         .rotate = 0,
-        .fallTime = 0
-    };
+        .fallTime = 0 };
 
     for (int i = 0; i < 4; i++)
     {
@@ -485,5 +551,4 @@ int main()
         printCanvas(canvas, &state);
         Sleep(100);
     }
-
 }
